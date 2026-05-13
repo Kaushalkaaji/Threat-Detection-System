@@ -1,0 +1,63 @@
+services:
+
+  vulnerable_machine:
+    image: vulnerables/web-dvwa
+    ports:
+      - "8080:80"
+    volumes:
+      - dvwa_logs:/var/log/apache2
+    networks:
+      - lab_network
+
+  attacker_machine:
+    image: kalilinux/kali-rolling
+    tty: true
+    networks:
+      - lab_network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.0
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      xpack.security.enabled: "false"
+      network.host: 0.0.0.0
+      http.host: 0.0.0.0
+    ports:
+      - "9200:9200"
+    networks:
+      - lab_network
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.5.0
+    volumes:
+      - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    ports:
+      - "5044:5044"
+    networks:
+      - lab_network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.5.0
+    ports:
+      - "5601:5601"
+    networks:
+      - lab_network
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.5.0
+    user: root
+    command: filebeat -e --strict.perms=false
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - dvwa_logs:/var/log/apache2:ro
+    depends_on:
+      - logstash
+    networks:
+      - lab_network
+
+networks:
+  lab_network:
+
+volumes:
+  dvwa_logs:
