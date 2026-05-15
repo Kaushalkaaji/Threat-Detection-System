@@ -38,6 +38,6 @@ This project demonstrates how security threats can be detected automatically by 
 - Security event monitoring
 
 ## Team Members
-- Hira Yadav
-- Charu Jain
 - Kaushal Jung Thapa
+- Charu Jain
+- Hira Yadav
